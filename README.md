@@ -1,10 +1,16 @@
 # PythonLab
 How to start:
+
 Clone this repository:
-$ git clone 
+
+$ git clone https://github.com/YuraChernii/PythonLab.git
+
 
 Install with pip:
+
 $ pip install -r requirements.txt
 
+
 To run project:
+
 ../PythonLab: flask run 
