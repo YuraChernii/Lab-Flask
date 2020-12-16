@@ -1,39 +1,49 @@
 from app import app
-from flask import request, url_for, jsonify
+from app import auth
+from flask_login import login_user, login_required, logout_user
+from flask import request, url_for, jsonify, render_template, redirect, flash
 from flask_api import FlaskAPI, status, exceptions
 from . import db
-@app.route('/api/v1/hello-world-29')
-@app.route('/index')
+from app import Student
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+users = {
+    "john": generate_password_hash("hell"),
+    "susan": generate_password_hash("bye")
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and \
+            check_password_hash(users.get(username), password):
+        return username
+@app.route('/api2')
+def index2():
+    return "Hello, %s!"
+@app.route('/api')
+@login_required
 def index():
-    return "Hello, World 29"
+    return "Hello, %s!"
 
-books = [
-    {'id': 0,
-     'title': 'A Fire Upon the Deep',
-     'author': 'Vernor Vinge',
-     'first_sentence': 'The coldsleep itself was dreamless.',
-     'year_published': '1992'},
-    {'id': 1,
-     'title': 'The Ones Who Walk Away From Omelas',
-     'author': 'Ursula K. Le Guin',
-     'first_sentence': 'With a clamor of bells that set the swallows soaring, the Festival of Summer came to the city Omelas, bright-towered by the sea.',
-     'published': '1973'},
-    {'id': 2,
-     'title': 'Dhalgren',
-     'author': 'Samuel R. Delany',
-     'first_sentence': 'to wound the autumnal city.',
-     'published': '1975'}
-]
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    print(1)
+    login = request.form.get('login')
+    password = request.form.get('password')
+    print(2)
+    if login and password:
+        user = Student.query.filter_by(userName=login).first()
+        print(3)
+        if check_password_hash(user.password, password):
+            login_user(user)
+            next_page = request.args.get('next')
+            redirect(next_page)
+        else:
+            flash('incorrect')
 
-
-@app.route('/', methods=['GET'])
-def home():
-    db.st
-    return '''<h1>Distant Reading Archive</h1>
-<p>A prototype API for distant reading of science fiction novels.</p>'''
+    else:
+        flash('Please fill login and password fields')
+        return 1#render_template('login.html')
 
 
-# A route to return all of the available entries in our catalog.
-@app.route('/api/v1/resources/books/all', methods=['GET'])
-def api_all():
-    return jsonify(books)

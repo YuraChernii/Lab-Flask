@@ -14,16 +14,24 @@ from gevent import pywsgi
 from http import HTTPStatus
 from json import dumps
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_httpauth import HTTPBasicAuth
+from flask_login import LoginManager
 
 
 
 
 app = Flask(__name__)
+app.secret_key = 'some secrete salt'
 api = Api(app)
+auth = HTTPBasicAuth()
 app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc://HP-ПК/databasePython?driver=SQL+Server?trusted_connection=yes"
 #app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc://yura:12345@HP-ПК/TestEFCore"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+
 db = SQLAlchemy(app)
+
+manager = LoginManager(app)###
+
 class Student(db.Model):
     __tablename__ = 'student'
 
@@ -52,14 +60,17 @@ from app import routes
 
 student_put_args = reqparse.RequestParser()
 student_put_args2 = reqparse.RequestParser()
+arg_for_delete_user = reqparse.RequestParser()
 student_put_args.add_argument("userName", type=str,help="Invalid userName", required = True)
 student_put_args.add_argument("email", type=str,help="Invalid email",required = True)
 student_put_args.add_argument("phone", type=str,help="Invalid phone",required = True)
 student_put_args.add_argument("password", type=str,help="Invalid password",required = True)
-student_put_args2.add_argument("userName", type=str,help="Invalid userName")
+
 student_put_args2.add_argument("email", type=str,help="Invalid email")
 student_put_args2.add_argument("phone", type=str,help="Invalid phone")
 student_put_args2.add_argument("password", type=str,help="Invalid password")
+
+arg_for_delete_user.add_argument("userName", type=str,help="Invalid userName", required = True)
 
 
 resourse_fields = {
@@ -84,12 +95,7 @@ resourse_fields_for_marks2 = {
 
 
 def func_for_put(userObject, args):
-    if (args["userName"]):
-        print('change userName')
-        result = Student.query.filter_by(userName=args['userName']).count()
-        if (result):
-            abort(404, "We already have such a student)")
-        userObject.userName = args['userName']
+
     if (args["email"]):
         print('change email')
         result = Student.query.filter_by(email=args['email']).count()
@@ -106,29 +112,41 @@ def func_for_put(userObject, args):
         print('change password')
         userObject.password = generate_password_hash(args['password'])
 class Studen(Resource):
-
+    @auth.login_required
     @marshal_with(resourse_fields)
-    def post(self, studentName):
+    def post(self):
+        checkUser = Student.query.filter_by(userName=auth.current_user()).first()
+        if not checkUser.admin:
+            abort(401, "You do not have permission!!!!!((((((((((")
         args=student_put_args.parse_args()
-        userObject = Student()#userName='', admin=False,email='',phone,)
+        userObject = Student()
+        if (args["userName"]):
+            print('change userName')
+            result = Student.query.filter_by(userName=args['userName']).count()
+            if (result):
+                abort(404, "We already have such a student)")
+            userObject.userName = args['userName']
         func_for_put(userObject, args)
         userObject.admin = False
         db.session.add(userObject)
         db.session.commit()
         userObject = Student.query.filter_by(userName=userObject.userName).first()
         return userObject
+
+    @auth.login_required
     @marshal_with(resourse_fields)
-    def get(self,studentName):
-        result = Student.query.filter_by(userName=studentName).first()
+    def get(self):
+        result = Student.query.filter_by(userName=auth.current_user()).first()
         if(not result):
             abort(404, "Student not found")
         return result
 
+    @auth.login_required
     @marshal_with(resourse_fields)
-    def put(self,studentName):
+    def put(self):
         args = student_put_args2.parse_args()
         #print(args)
-        userObject = Student.query.filter_by(userName=studentName).first()
+        userObject = Student.query.filter_by(userName=auth.current_user()).first()
         if not userObject:
             abort(404, 'Student not found')
         func_for_put(userObject, args)
@@ -139,8 +157,13 @@ class Studen(Resource):
         #user = Student(userName="edgfdg", admin=True, email="gfsfg", phone="eadf", password="dsfsdf")
         return userObject2
 
-    def delete(self,studentName):
-        userObject = Student.query.filter_by(userName=studentName).first()
+    @auth.login_required
+    def delete(self):
+        checkUser = Student.query.filter_by(userName=auth.current_user()).first()
+        if not checkUser.admin:
+            abort(401, "You do not have permission!!!!!((((((((((")
+        args = arg_for_delete_user.parse_args()
+        userObject = Student.query.filter_by(userName=args['userName']).first()
         if not userObject:
             abort(404, 'Student not found')
         var1 = True
@@ -156,23 +179,25 @@ class Studen(Resource):
         return HTTPStatus.OK
 
 
-api.add_resource(Studen, "/student/<string:studentName>")
+api.add_resource(Studen, "/student")
 #app.run()
 student_put_args3 = reqparse.RequestParser()
 student_put_args4 = reqparse.RequestParser()
 student_put_args3.add_argument("studentName", type=str, help="Invalid studentName", required=True)
 student_put_args3.add_argument("subjectName", type=str, help="Invalid subjectName", required=True)
 student_put_args3.add_argument("mark", type=int, help="Invalid mark", required=True)
-student_put_args4.add_argument("studentName", type=str, help="Invalid studentName", required=True)
+#student_put_args4.add_argument("studentName", type=str, help="Invalid studentName", required=True)
 student_put_args4.add_argument("subjectName", type=str, help="Invalid subjectName", required=True)
 #student_put_args5 = reqparse.RequestParser()
 #student_put_args5.add_argument("numberOfStudents", type=int, help="Invalid numberOfStudents", required=True)
 
 class StudentMarks(Resource):
-
+    @auth.login_required
     @marshal_with(resourse_fields_for_marks)
     def post(self):
-
+        checkUser = Student.query.filter_by(userName=auth.current_user()).first()
+        if not checkUser.admin:
+            abort(401, "You do not have permission!!!!!((((((((((")
         args=student_put_args3.parse_args()
         if args['mark'] > 12 or args['mark'] < 0:
             abort(404, "The mark must be from 0 to 12 - integer")
@@ -188,15 +213,19 @@ class StudentMarks(Resource):
         db.session.commit()
         return markObject
 
-
+    @auth.login_required
     @marshal_with(resourse_fields_for_marks)##########
     def put(self):
+        checkUser = Student.query.filter_by(userName=auth.current_user()).first()
+        if not checkUser.admin:
+            abort(401, "You do not have permission!!!!!((((((((((")
         args = student_put_args3.parse_args()
         #print(args)
         userObject = Student.query.filter_by(userName=args['studentName']).first()
         if not userObject:
             abort(404,"Student not found")
-        markObject = Marks.query.filter_by(studentId=userObject.id,subjectName=args['subjectName']).first()#, subjectName=args['mark'])
+        #markObject=Marks.query.order_by(studentId=userObject.id,subjectName=args['subjectName']).first()
+        markObject = Marks.query.filter_by(studentId=userObject.id, subjectName=args['subjectName']).all()[-1]#, subjectName=args['mark'])
         if not markObject:
             abort(404, "This student does not have such subject(((")
         if args['mark']:
@@ -208,15 +237,23 @@ class StudentMarks(Resource):
 
         return markObject
 
-    @marshal_with(resourse_fields_for_marks2)  ########
+
+    #@marshal_with(resourse_fields_for_marks2)  ########
+    @auth.login_required
     def get(self):
+        result_list = []
         args = student_put_args4.parse_args()
-        userObject = Student.query.filter_by(userName=args['studentName']).first()
+
+        userObject = Student.query.filter_by(userName=auth.current_user()).first()
+
         if not userObject:
             abort(404, "Student not found")
-        markObject = Marks.query.filter_by(studentId=userObject.id, subjectName=args['subjectName']).first()
+        markObject = Marks.query.filter_by(studentId=userObject.id, subjectName=args['subjectName']).all()
+        for i in range(len(markObject)):
+            result_list.append(markObject[i].rating)
         if not markObject:
             abort(404, "This student does not have such subject((")
+        return jsonify(result_list)
         return markObject
     #def delete(self,studentName):
         #userObject = Student.query.filter_by(userName=studentName).first()
@@ -226,10 +263,19 @@ class StudentMarks(Resource):
         #db.session.commit()
         #return HTTPStatus.OK
 api.add_resource(StudentMarks, "/rating")
-
+users = {
+    "john": generate_password_hash("hell"),
+    "susan": generate_password_hash("bye")
+}
+@auth.verify_password
+def verify_password(username, password):
+    userObject = Student.query.filter_by(userName=username).first()
+    if userObject:
+        if check_password_hash(userObject.password, password):
+           return username
 class StudentStatistics(Resource):
 
-
+    @auth.login_required
     def get(self,numberOfStudents):
         #args = student_put_args5.parse_args()
         if numberOfStudents <= 0:
@@ -273,8 +319,8 @@ class StudentStatistics(Resource):
         #return markObject
 
 api.add_resource(StudentStatistics, "/rating/bestStudents/<int:numberOfStudents>")
-server = pywsgi.WSGIServer(('127.0.0.1', 5000), app)
-server.serve_forever()
+#server = pywsgi.WSGIServer(('127.0.0.1', 5000), app)
+#server.serve_forever()
 #{
 #    "userName":"Roman",
 #    "email":"dsndbdd33333ff3333353f3333333333333g3333rg",
