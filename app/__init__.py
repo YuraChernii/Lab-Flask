@@ -1,24 +1,14 @@
 from gevent import monkey
 monkey.patch_all()
-from flask import Flask, request, make_response
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Boolean, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, ForeignKey
-from flask import Flask,abort,session, jsonify
+from flask import Flask,abort, jsonify
 from flask_restful import Api, Resource, reqparse, fields, marshal_with
-from sqlalchemy import func
 #from gevent import wsgi
-from gevent import pywsgi
 from http import HTTPStatus
-from json import dumps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_httpauth import HTTPBasicAuth
 from flask_login import LoginManager
-
-
-
 
 app = Flask(__name__)
 app.secret_key = 'some secrete salt'
@@ -121,7 +111,7 @@ class Studen(Resource):
         args=student_put_args.parse_args()
         userObject = Student()
         if (args["userName"]):
-            print('change userName')
+
             result = Student.query.filter_by(userName=args['userName']).count()
             if (result):
                 abort(404, "We already have such a student)")
@@ -331,4 +321,4 @@ api.add_resource(StudentStatistics, "/rating/bestStudents/<int:numberOfStudents>
 #    "studentName":"123ddb4d44v4b3",
 #    "subjectName":"dsndbddrg",
 #    "mark":1
-#}
+#}Petro:12345
