@@ -5,7 +5,7 @@
 ```
 $ git clone https://github.com/YuraChernii/Lab-Flask.git
 ```
-#### Download, create and activate virtualenv:
+### Download, create and activate virtualenv:
 
 #### 2)write pip install virtualenv
 ####   3)Open poject and write: virtualenv env -p <path to version of python(example: c:\Python27\python.exe)>
