@@ -1,5 +1,3 @@
-## PythonLab
-
 ## How to start:
 #### 1) Firstly, clone repository or download zip:
 ```
