@@ -6,21 +6,32 @@
 $ git clone https://github.com/YuraChernii/Lab-Flask.git
 ```
 ### Download, create and activate virtualenv:
-```
-#### 2)write:
+#### 2)Write:
 ```
 $ pip install virtualenv
 ```
-####   3)Open poject and write: virtualenv env -p <path to version of python(example: c:\Python27\python.exe)>
-#### 4)Then: pip install -r requirements.txt
-#### 5)Then: env\scripts\activate.bat
-
+#### 3)Open poject and write: 
+```
+$ virtualenv env -p <path to version of python(example: c:\Python27\python.exe)>
+```
+#### 4)Then: 
+```
+$ pip install -r requirements.txt
+```
+#### 5)Then: 
+```
+$ env\scripts\activate.bat
 ```
 
-To run project:
-1)../PythonLab: set FLASK_APP=PythonLab.py
-2)../PythonLab: flask run 
->>>>>>> origin
+##To run project:
+####1)../PythonLab: 
+```
+$ set FLASK_APP=PythonLab.py
+```
+2)../PythonLab: 
+```
+$ flask run 
+```
 
 
 ## General info:
