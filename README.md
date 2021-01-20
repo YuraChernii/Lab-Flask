@@ -1,18 +1,21 @@
 ## PythonLab
 
 ## How to start:
-#### 1)git clone or download zip
+#### 1) Git clone or download zip
 ```
 $ git clone https://github.com/YuraChernii/Lab-Flask.git
 ```
 ### Download, create and activate virtualenv:
-
-#### 2)write pip install virtualenv
+```
+#### 2)write:
+```
+$ pip install virtualenv
+```
 ####   3)Open poject and write: virtualenv env -p <path to version of python(example: c:\Python27\python.exe)>
 #### 4)Then: pip install -r requirements.txt
 #### 5)Then: env\scripts\activate.bat
 
-
+```
 
 To run project:
 1)../PythonLab: set FLASK_APP=PythonLab.py
