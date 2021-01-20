@@ -24,11 +24,11 @@ $ env\scripts\activate.bat
 ```
 
 ## To run project:
-#### 1)../Lab-Flask: 
+#### 1).../Lab-Flask: 
 ```
 $ set FLASK_APP=PythonLab.py
 ```
-#### 2)../Lab-Flask: 
+#### 2).../Lab-Flask: 
 ```
 $ flask run 
 ```
